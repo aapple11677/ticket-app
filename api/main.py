@@ -105,7 +105,27 @@ def create_proxy_order(order: ProxyOrderCreate, db: Session = Depends(get_db)):
         "order_id": db_order.id
     }
     # ... (上方原本處理訂單的程式碼維持不動) ...
-
+# ==========================================
+# ★ 新增：讀取訂單並提供給行事曆的 API
+# ==========================================
+@app.get("/api/proxy-orders/")
+def get_proxy_orders(db: Session = Depends(get_db)):
+    """從資料庫撈出所有訂單，並轉換成 FullCalendar 需要的格式"""
+    orders = db.query(ProxyOrder).all()
+    result = []
+    for order in orders:
+        result.append({
+            "id": order.id,
+            "title": f"代搶: {order.event_name}",   # 行事曆上顯示的方塊標題
+            "start": order.ticket_date.isoformat(), # 決定方塊出現在哪一天
+            "extendedProps": {                      # 把客戶細節藏在背景，點擊時才顯示
+                "contact": order.contact_info,
+                "details": order.ticket_details,
+                "status": order.order_status
+            },
+            "color": "#ff4d4d" if order.order_status == "待搶票" else "#28a745" # 待搶票顯示紅色，其他顯示綠色
+        })
+    return result
 # ★ 將以下這段加入到檔案的最下方
 @app.get("/")
 @app.get("/index.html")
