@@ -64,14 +64,38 @@ document.addEventListener('DOMContentLoaded', function() {
         initialView: 'dayGridMonth',
         events: '/api/proxy-orders/', // 讓行事曆自動去呼叫我們寫好的後端 API
         eventClick: function(info) {
-            // 點擊行程時，彈出詳細資訊
-            alert(
-                "🎟 活動：" + info.event.title + "\n" +
-                "👤 聯絡人：" + info.event.extendedProps.contact + "\n" +
-                "📝 需求：" + info.event.extendedProps.details + "\n" +
-                "📌 狀態：" + info.event.extendedProps.status
-            );
+    // 1. 先跳出確認視窗，顯示目前資訊
+    var action = confirm(
+        "🎟 活動：" + info.event.title + "\n" +
+        "👤 聯絡人：" + info.event.extendedProps.contact + "\n" +
+        "📝 需求與領票資訊：" + info.event.extendedProps.details + "\n" +
+        "📌 狀態：" + info.event.extendedProps.status + "\n\n" +
+        "👉 點擊「確定」來修改狀態與領票資訊，或點擊「取消」關閉。"
+    );
+
+    // 2. 如果使用者點擊確定，就跳出輸入框讓他修改
+    if (action) {
+        var newStatus = prompt("請輸入新狀態：", info.event.extendedProps.status);
+        var newDetails = prompt("請輸入最新領票資訊或需求修改：", info.event.extendedProps.details);
+
+        // 3. 如果輸入不為空，就將新資料送到後端 API
+        if (newStatus !== null && newDetails !== null) {
+            fetch('/api/proxy-orders/' + info.event.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    order_status: newStatus, 
+                    ticket_details: newDetails 
+                })
+            }).then(response => {
+                if(response.ok) {
+                    alert("更新成功！");
+                    info.view.calendar.refetchEvents(); // 讓行事曆重新抓取最新資料
+                }
+            });
         }
+    }
+}
     });
     calendar.render();
 });
