@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>票務代搶登記系統</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <style>
         body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
         div { margin-bottom: 10px; }
@@ -22,7 +23,9 @@
     <div><label>信用卡後6碼:</label><input type="text" id="creditCard" placeholder="例如：123456"></div>
     
     <button onclick="submitOrder()">送出訂單</button>
-
+    <hr style="margin: 30px 0;">
+    <h2>任務行事曆</h2>
+    <div id='calendar'></div>
     <script>
         async function submitOrder() {
             const data = {
@@ -52,6 +55,27 @@
                 alert("無法連線到伺服器，請確認 uvicorn 是否有在執行。");
             }
         }
+        // ==========================================
+// ★ 從這裡開始貼上行事曆初始化程式碼
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: '/api/proxy-orders/', // 讓行事曆自動去呼叫我們寫好的後端 API
+        eventClick: function(info) {
+            // 點擊行程時，彈出詳細資訊
+            alert(
+                "🎟 活動：" + info.event.title + "\n" +
+                "👤 聯絡人：" + info.event.extendedProps.contact + "\n" +
+                "📝 需求：" + info.event.extendedProps.details + "\n" +
+                "📌 狀態：" + info.event.extendedProps.status
+            );
+        }
+    });
+    calendar.render();
+});
+// ==========================================
     </script>
 </body>
 </html>
