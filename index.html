@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>票務代搶登記系統</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+        div { margin-bottom: 10px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>新增代搶訂單</h2>
+    
+    <div><label>活動名稱:</label><input type="text" id="eventName" placeholder="例如：Post Malone 高雄場"></div>
+    <div><label>搶票日期時間:</label><input type="datetime-local" id="ticketDate"></div>
+    <div><label>客戶聯絡人 (平台):</label><input type="text" id="contactInfo" placeholder="例如：LINE - 王小明"></div>
+    <div><label>需求明細:</label><input type="text" id="ticketDetails" placeholder="例如：搖滾區 2張"></div>
+    <div><label>購票平台帳密:</label><input type="text" id="accountPassword" placeholder="例如：FB登入 test@email.com / 密碼123"></div>
+    <div><label>信用卡後6碼:</label><input type="text" id="creditCard" placeholder="例如：123456"></div>
+    
+    <button onclick="submitOrder()">送出訂單</button>
+
+    <script>
+        async function submitOrder() {
+            const data = {
+                event_name: document.getElementById('eventName').value,
+                ticket_date: document.getElementById('ticketDate').value + ":00",
+                contact_info: document.getElementById('contactInfo').value,
+                ticket_details: document.getElementById('ticketDetails').value,
+                account_password: document.getElementById('accountPassword').value,
+                credit_card_last_digits: document.getElementById('creditCard').value
+            };
+
+            try {
+                // 將資料發送到我們剛建立好的 FastAPI 伺服器
+                const response = await fetch("/api/proxy-orders/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert("成功！ " + result.message);
+                } else {
+                    alert("發生錯誤，請檢查資料格式。");
+                }
+            } catch (error) {
+                alert("無法連線到伺服器，請確認 uvicorn 是否有在執行。");
+            }
+        }
+    </script>
+</body>
+</html>
