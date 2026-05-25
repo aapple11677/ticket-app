@@ -1,4 +1,4 @@
-Plaintext
+
 fastapi
 uvicorn
 sqlalchemy
