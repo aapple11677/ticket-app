@@ -1,4 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import FileResponse  # ★ 新增這行
+import os  # ★ 新增這行
+from pydantic import BaseModel
+# ... (下方原本的程式碼維持不動) ...
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -100,3 +104,12 @@ def create_proxy_order(order: ProxyOrderCreate, db: Session = Depends(get_db)):
         "message": "訂單建立成功，帳密已安全加密", 
         "order_id": db_order.id
     }
+    # ... (上方原本處理訂單的程式碼維持不動) ...
+
+# ★ 將以下這段加入到檔案的最下方
+@app.get("/")
+@app.get("/index.html")
+def serve_frontend():
+    # 自動尋找 index.html 的正確位置並顯示在瀏覽器上
+    file_path = "index.html" if os.path.exists("index.html") else "../index.html"
+    return FileResponse(file_path)
