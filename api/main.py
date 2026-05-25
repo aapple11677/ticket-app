@@ -71,6 +71,10 @@ def get_db():
 
 # 定義前端傳入的資料格式 (Pydantic Model)
 class ProxyOrderCreate(BaseModel):
+    # 定義更新訂單時接收的資料格式
+class OrderUpdate(BaseModel):
+    order_status: str
+    ticket_details: str
     event_name: str
     ticket_date: datetime
     contact_info: str
@@ -129,6 +133,20 @@ def get_proxy_orders(db: Session = Depends(get_db)):
 # ★ 將以下這段加入到檔案的最下方
 @app.get("/")
 @app.get("/index.html")
+# ==========================================
+# ★ 新增：更新訂單狀態與領票資訊的 API
+# ==========================================
+@app.put("/api/proxy-orders/{order_id}")
+def update_order(order_id: int, order_data: OrderUpdate, db: Session = Depends(get_db)):
+    # 去資料庫找出那筆訂單
+    order = db.query(ProxyOrder).filter(ProxyOrder.id == order_id).first()
+    if order:
+        # 將舊資料替換成新資料
+        order.order_status = order_data.order_status
+        order.ticket_details = order_data.ticket_details
+        db.commit() # 存檔
+        return {"message": "更新成功"}
+    return {"error": "找不到訂單"}
 def serve_frontend():
     # 自動尋找 index.html 的正確位置並顯示在瀏覽器上
     file_path = "index.html" if os.path.exists("index.html") else "../index.html"
